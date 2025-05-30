@@ -1,18 +1,34 @@
-FROM ubuntu:latest AS build
+# Etapa de build
+FROM openjdk:21-jdk-slim AS build
 
-RUN apt-get update
-RUN apt-get install openjdk-21-jdk -y
+# Instala dependências necessárias
+RUN apt-get update && \
+    apt-get install -y curl unzip && \
+    rm -rf /var/lib/apt/lists/*
 
+# Cria o diretório da aplicação
+WORKDIR /app
+
+# Copia os arquivos do projeto
 COPY . .
 
-RUN apt install gradle -y
-RUN apt-get update
-RUN gradle build
+# Dá permissão de execução para o gradlew
+RUN chmod +x ./gradlew
 
+# Faz o build usando o gradle wrapper
+RUN ./gradlew build --no-daemon
+
+# Etapa final da imagem
 FROM openjdk:21-jdk-slim
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Expõe a porta
 EXPOSE 8080
 
-COPY --from=build /libs/ms-reserve-0.0.1-SNAPSHOT.jar app.jar
+# Copia o JAR gerado da etapa anterior
+COPY --from=build /app/build/libs/*.jar app.jar
 
+# Define o comando de inicialização
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
