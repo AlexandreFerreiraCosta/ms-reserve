@@ -5,7 +5,7 @@ RUN apt-get install openjdk-21-jdk -y
 
 COPY . .
 
-RUN apt-get install gradle
+RUN apt install gradle -y
 RUN apt-get update
 RUN gradle clean build
 
